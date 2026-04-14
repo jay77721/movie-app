@@ -1,0 +1,22 @@
+# 构建产物
+build/
+.gradle/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# IDE
+.idea/
+*.iml
+.local.properties
+
+# Python
+server/venv/
+server/__pycache__/
+server/.env.local
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
