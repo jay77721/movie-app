@@ -29,6 +29,13 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.VH> {
         notifyDataSetChanged();
     }
 
+    /** 追加数据（分页加载） */
+    public void appendData(List<MovieBrief> list) {
+        int start = data.size();
+        data.addAll(list);
+        notifyItemRangeInserted(start, list.size());
+    }
+
     @NonNull @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int type) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_movie, parent, false);

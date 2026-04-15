@@ -3,5 +3,6 @@
     <style name="Theme.MovieApp" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryContainer">@color/purple_100</item>
+        <item name="android:windowBackground">@color/white</item>
     </style>
 </resources>

@@ -3,6 +3,7 @@ package com.movieapp.ui.home;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.movieapp.R;
@@ -23,7 +24,13 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnMo
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // 强制浅色模式，防止模拟器暗色主题导致黑屏
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         setContentView(R.layout.activity_main);
+
+        // 设置 Toolbar 为 ActionBar
+        com.google.android.material.appbar.MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
 
