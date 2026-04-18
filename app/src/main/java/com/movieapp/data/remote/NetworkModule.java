@@ -21,7 +21,7 @@ public class NetworkModule {
     private static final String BASE_URL = "http://10.0.2.2:8888/";
 
     // TMDB API Read Access Token（从 themoviedb.org/settings/api 获取）
-    private static final String BEARER_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4OTUzNzFhZmQ4MWU5OTkzOGVjZDQ5MjgyMjEwMmVkNiIsIm5iZiI6MTc3NjE0Nzk4MS42MDUsInN1YiI6IjY5ZGRkZTBkOGUwYzJkNjkyODliOTI4NCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.kQ-3zMFnrs9Z1PzNiM6LP7Qc2bwuul50a798fCcLTSY";
+    private static final String BEARER_TOKEN = "YourApiToken";
 
     private static volatile TmdbApi api;
 
