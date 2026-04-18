@@ -21,7 +21,8 @@ import com.movieapp.ui.detail.DetailActivity;
 import java.util.List;
 
 /**
- * 收藏页 — "想看" 和 "已看" 两个标签页
+ * 收藏页 — 「想看」和「已看」两个标签页
+ * 每次 onResume 自动刷新（从详情页收藏后回来能立即看到更新）
  */
 public class CollectionFragment extends Fragment {
 
@@ -48,6 +49,7 @@ public class CollectionFragment extends Fragment {
         RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
         tvEmpty = view.findViewById(R.id.tv_empty);
 
+        // 列表
         adapter = new MovieAdapter();
         adapter.setOnItemClick(m -> {
             Intent intent = new Intent(requireContext(), DetailActivity.class);
@@ -77,7 +79,7 @@ public class CollectionFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        loadCollection();
+        loadCollection(); // 从详情页回来时刷新
     }
 
     /** 加载收藏列表 */
@@ -89,10 +91,9 @@ public class CollectionFragment extends Fragment {
                 adapter.setData(data);
                 swipeRefresh.setRefreshing(false);
                 if (data.isEmpty()) {
-                    String msg = currentTab == CollectionType.WANT_TO_WATCH
+                    tvEmpty.setText(currentTab == CollectionType.WANT_TO_WATCH
                             ? "还没有想看的电影\n快去首页发现好电影吧！"
-                            : "还没有已看过的电影\n开始你的观影之旅吧！";
-                    tvEmpty.setText(msg);
+                            : "还没有已看过的电影\n开始你的观影之旅吧！");
                     tvEmpty.setVisibility(View.VISIBLE);
                 } else {
                     tvEmpty.setVisibility(View.GONE);

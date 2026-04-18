@@ -1,47 +1,56 @@
 package com.movieapp.data.remote;
 
-import com.movieapp.model.MovieBrief;
-import com.movieapp.model.MovieDetail;
-import java.util.List;
 import retrofit2.Call;
 import retrofit2.http.*;
 
-/** TMDB 电影 API 接口定义 */
+/**
+ * TMDB 电影 API 接口定义
+ * Bearer Token 由 NetworkModule 的拦截器自动注入
+ */
 public interface TmdbApi {
 
-    /** 电影列表响应 */
-    class MovieListResponse {
-        public List<MovieBrief> results;
-        public int page;
-        public String tag;
-    }
-
-    /** 标签列表响应 */
-    class TagsResponse {
-        public List<String> tags;
-    }
-
     /** 热门电影 */
-    @GET("api/movies/hot")
-    Call<MovieListResponse> getHotMovies(@Query("page") int page);
+    @GET("movie/popular")
+    Call<TmdbResponse.MovieList> getHotMovies(
+            @Query("language") String lang,
+            @Query("page") int page
+    );
 
-    /** 高分电影 (Top250 替代) */
-    @GET("api/movies/top250")
-    Call<MovieListResponse> getTop250(@Query("page") int page);
+    /** 高分电影 */
+    @GET("movie/top_rated")
+    Call<TmdbResponse.MovieList> getTop250(
+            @Query("language") String lang,
+            @Query("page") int page
+    );
 
-    /** 按类型筛选 */
-    @GET("api/movies/tag/{tag}")
-    Call<MovieListResponse> getByTag(@Path("tag") String tag, @Query("page") int page);
-
-    /** 获取可用类型标签 */
-    @GET("api/movies/tags")
-    Call<TagsResponse> getTags();
+    /** 按类型筛选（with_genres 传 TMDB genre_id） */
+    @GET("discover/movie")
+    Call<TmdbResponse.MovieList> getByGenre(
+            @Query("language") String lang,
+            @Query("page") int page,
+            @Query("with_genres") int genreId,
+            @Query("sort_by") String sortBy
+    );
 
     /** 搜索电影 */
-    @GET("api/movies/search")
-    Call<MovieListResponse> search(@Query("q") String query, @Query("page") int page);
+    @GET("search/movie")
+    Call<TmdbResponse.MovieList> search(
+            @Query("language") String lang,
+            @Query("page") int page,
+            @Query("query") String query
+    );
 
     /** 电影详情 */
-    @GET("api/movies/{id}")
-    Call<MovieDetail> getDetail(@Path("id") String id);
+    @GET("movie/{id}")
+    Call<TmdbResponse.Movie> getDetail(
+            @Path("id") int movieId,
+            @Query("language") String lang
+    );
+
+    /** 电影演职员 */
+    @GET("movie/{id}/credits")
+    Call<TmdbResponse.Credits> getCredits(
+            @Path("id") int movieId,
+            @Query("language") String lang
+    );
 }

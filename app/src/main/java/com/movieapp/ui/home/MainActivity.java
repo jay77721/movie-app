@@ -5,6 +5,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.movieapp.R;
 import com.movieapp.ui.collection.CollectionFragment;
@@ -13,6 +14,7 @@ import com.movieapp.ui.search.SearchFragment;
 
 /**
  * 主界面 — 底部导航切换 首页/搜索/收藏 三个页面
+ * 用 hide/show 切换 Fragment，避免重复创建
  */
 public class MainActivity extends AppCompatActivity implements HomeFragment.OnMovieClickListener {
 
@@ -24,41 +26,31 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnMo
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // 强制浅色模式，防止模拟器暗色主题导致黑屏
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO); // 强制浅色模式
         setContentView(R.layout.activity_main);
 
-        // 设置 Toolbar 为 ActionBar
-        com.google.android.material.appbar.MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setSupportActionBar((MaterialToolbar) findViewById(R.id.toolbar));
 
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
-
-        // 默认显示首页
         activeFragment = homeFragment;
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.fragment_container, homeFragment, "home")
                 .commit();
 
         // 底部导航切换
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment target;
             int id = item.getItemId();
-            if (id == R.id.nav_home) {
-                target = homeFragment;
-            } else if (id == R.id.nav_search) {
-                target = searchFragment;
-            } else if (id == R.id.nav_fav) {
-                target = collectionFragment;
-            } else {
-                return false;
-            }
+            if (id == R.id.nav_home) target = homeFragment;
+            else if (id == R.id.nav_search) target = searchFragment;
+            else if (id == R.id.nav_fav) target = collectionFragment;
+            else return false;
             switchFragment(target);
             return true;
         });
     }
 
-    /** 切换 Fragment（用 hide/show 避免重复创建） */
+    /** hide/show 切换 Fragment（不销毁，保持状态） */
     private void switchFragment(Fragment target) {
         if (target == activeFragment) return;
         var tx = getSupportFragmentManager().beginTransaction();

@@ -9,10 +9,12 @@ import com.movieapp.R;
 import com.movieapp.model.MovieBrief;
 import java.util.*;
 
-/** 电影列表适配器 — 将 MovieBrief 数据绑定到 RecyclerView 卡片 */
+/**
+ * 电影列表适配器 — 将 MovieBrief 数据绑定到 RecyclerView 卡片
+ * 用于首页、搜索、收藏三个列表页
+ */
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.VH> {
 
-    /** 点击回调 */
     public interface OnItemClick {
         void onClick(MovieBrief movie);
     }
@@ -22,14 +24,14 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.VH> {
 
     public void setOnItemClick(OnItemClick l) { listener = l; }
 
-    /** 替换全部数据 */
+    /** 替换全部数据（刷新时用） */
     public void setData(List<MovieBrief> list) {
         data.clear();
         data.addAll(list);
         notifyDataSetChanged();
     }
 
-    /** 追加数据（分页加载） */
+    /** 追加数据（分页加载时用） */
     public void appendData(List<MovieBrief> list) {
         int start = data.size();
         data.addAll(list);

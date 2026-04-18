@@ -17,11 +17,11 @@ import com.movieapp.data.repository.MovieRepository;
 import com.movieapp.model.MovieBrief;
 import com.movieapp.ui.adapter.MovieAdapter;
 import com.movieapp.ui.detail.DetailActivity;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
- * 搜索页 — 输入关键词搜索电影，支持防抖
+ * 搜索页 — 输入关键词搜索电影
+ * 支持：实时防抖（500ms）/ 键盘搜索按钮 / API 失败时本地回退
  */
 public class SearchFragment extends Fragment {
 
@@ -30,30 +30,32 @@ public class SearchFragment extends Fragment {
     private ProgressBar progress;
     private TextView tvEmpty;
 
+    // mock 海报 URL 前缀
+    private static final String MOCK_COVER_BASE = "https://img3.doubanio.com/view/photo/s_ratio_poster/public/";
+
     // 本地搜索数据集（API 不可用时回退）
-    private static final List<MovieBrief> MOCK_DB = buildMockDb();
+    private static final List<MovieBrief> MOCK_DB = Arrays.asList(
+            makeMock("1", "肖申克的救赎", 9.7, "p480747492.jpg", "1994", "剧情/犯罪"),
+            makeMock("2", "霸王别姬", 9.6, "p1910813120.jpg", "1993", "剧情/爱情"),
+            makeMock("3", "阿甘正传", 9.5, "p512195682.jpg", "1994", "剧情/爱情"),
+            makeMock("4", "泰坦尼克号", 9.4, "p457760035.jpg", "1997", "剧情/爱情"),
+            makeMock("5", "千与千寻", 9.4, "p2578474613.jpg", "2001", "动画/奇幻"),
+            makeMock("6", "星际穿越", 9.4, "p2206088801.jpg", "2014", "科幻/冒险"),
+            makeMock("7", "盗梦空间", 9.3, "p513344864.jpg", "2010", "科幻/悬疑"),
+            makeMock("8", "楚门的世界", 9.3, "p479682972.jpg", "1998", "剧情/科幻"),
+            makeMock("9", "这个杀手不太冷", 9.4, "p511118051.jpg", "1994", "动作/犯罪"),
+            makeMock("10", "教父", 9.3, "p616779645.jpg", "1972", "剧情/犯罪")
+    );
 
-    private static List<MovieBrief> buildMockDb() {
-        String base = "https://img3.doubanio.com/view/photo/s_ratio_poster/public/";
-        List<MovieBrief> list = new ArrayList<>();
-        list.add(make("1", "肖申克的救赎", 9.7, base + "p480747492.jpg", "1994", "剧情/犯罪"));
-        list.add(make("2", "霸王别姬", 9.6, base + "p1910813120.jpg", "1993", "剧情/爱情"));
-        list.add(make("3", "阿甘正传", 9.5, base + "p512195682.jpg", "1994", "剧情/爱情"));
-        list.add(make("4", "泰坦尼克号", 9.4, base + "p457760035.jpg", "1997", "剧情/爱情"));
-        list.add(make("5", "千与千寻", 9.4, base + "p2578474613.jpg", "2001", "动画/奇幻"));
-        list.add(make("6", "星际穿越", 9.4, base + "p2206088801.jpg", "2014", "科幻/冒险"));
-        list.add(make("7", "盗梦空间", 9.3, base + "p513344864.jpg", "2010", "科幻/悬疑"));
-        list.add(make("8", "楚门的世界", 9.3, base + "p479682972.jpg", "1998", "剧情/科幻"));
-        list.add(make("9", "这个杀手不太冷", 9.4, base + "p511118051.jpg", "1994", "动作/犯罪"));
-        list.add(make("10", "教父", 9.3, base + "p616779645.jpg", "1972", "剧情/犯罪"));
-        return list;
-    }
-
-    private static MovieBrief make(String id, String title, double rating, String cover,
-                                    String year, String genres) {
+    private static MovieBrief makeMock(String id, String title, double rating,
+                                        String posterFile, String year, String genres) {
         MovieBrief m = new MovieBrief();
-        m.setId(id); m.setTitle(title); m.setRating(rating); m.setCover(cover);
-        m.setYear(year); m.setGenres(genres);
+        m.setId(id);
+        m.setTitle(title);
+        m.setRating(rating);
+        m.setCover(MOCK_COVER_BASE + posterFile);
+        m.setYear(year);
+        m.setGenres(genres);
         return m;
     }
 
@@ -73,6 +75,7 @@ public class SearchFragment extends Fragment {
         tvEmpty = view.findViewById(R.id.tv_empty);
         RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
 
+        // 列表
         adapter = new MovieAdapter();
         adapter.setOnItemClick(m -> {
             Intent intent = new Intent(requireContext(), DetailActivity.class);
@@ -82,7 +85,7 @@ public class SearchFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
 
-        // 500ms 防抖搜索
+        // 500ms 防抖搜索（输入停止 500ms 后才发起请求）
         android.os.Handler handler = new android.os.Handler();
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
@@ -108,7 +111,7 @@ public class SearchFragment extends Fragment {
     /** 执行搜索（API → 失败用本地数据） */
     private void doSearch(String query) {
         if (query.isEmpty()) {
-            adapter.setData(java.util.Collections.emptyList());
+            adapter.setData(Collections.emptyList());
             tvEmpty.setVisibility(View.VISIBLE);
             tvEmpty.setText("输入关键词搜索电影");
             return;
@@ -116,7 +119,10 @@ public class SearchFragment extends Fragment {
         progress.setVisibility(View.VISIBLE);
         tvEmpty.setVisibility(View.GONE);
 
-        repo.search(query, 1, data -> showResults(data), msg -> showResults(localSearch(query)));
+        repo.search(query, 1,
+                data -> showResults(data),
+                msg -> showResults(localSearch(query))
+        );
     }
 
     private void showResults(List<MovieBrief> data) {
@@ -124,16 +130,12 @@ public class SearchFragment extends Fragment {
         requireActivity().runOnUiThread(() -> {
             progress.setVisibility(View.GONE);
             adapter.setData(data);
-            if (data.isEmpty()) {
-                tvEmpty.setVisibility(View.VISIBLE);
-                tvEmpty.setText("没有找到相关电影");
-            } else {
-                tvEmpty.setVisibility(View.GONE);
-            }
+            tvEmpty.setVisibility(data.isEmpty() ? View.VISIBLE : View.GONE);
+            if (data.isEmpty()) tvEmpty.setText("没有找到相关电影");
         });
     }
 
-    /** 本地模糊搜索 */
+    /** 本地模糊搜索（按标题和类型匹配） */
     private List<MovieBrief> localSearch(String query) {
         String q = query.toLowerCase();
         List<MovieBrief> results = new ArrayList<>();

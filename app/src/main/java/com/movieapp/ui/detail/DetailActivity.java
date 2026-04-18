@@ -1,6 +1,7 @@
 package com.movieapp.ui.detail;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
@@ -15,7 +16,8 @@ import com.movieapp.model.MovieDetail;
 import java.util.*;
 
 /**
- * 电影详情页 — 海报、简介、演员、收藏
+ * 电影详情页 — 展示海报、简介、演员、收藏按钮
+ * 点击收藏按钮切换「想看」/「已看」状态，数据存入 Room 数据库
  */
 public class DetailActivity extends AppCompatActivity {
 
@@ -28,6 +30,9 @@ public class DetailActivity extends AppCompatActivity {
     private MaterialButton btnWant, btnWatched;
     private ChipGroup chipGenres;
     private MaterialToolbar toolbar;
+
+    // mock 海报 URL 前缀
+    private static final String MOCK_COVER_BASE = "https://img3.doubanio.com/view/photo/s_ratio_poster/public/";
 
     // API 不可用时的本地详情数据
     private static final Map<String, MovieDetail> MOCK = new HashMap<>();
@@ -58,20 +63,24 @@ public class DetailActivity extends AppCompatActivity {
                 "彼得·威尔", "金·凯瑞", "剧情/科幻", "103分钟", "1998-06-05"));
     }
 
-    private static MovieDetail buildMock(String id, String title, double rating, String poster,
+    private static MovieDetail buildMock(String id, String title, double rating, String posterFile,
                                           String year, String summary, String director,
                                           String cast, String genres, String duration, String date) {
-        String base = "https://img3.doubanio.com/view/photo/s_ratio_poster/public/";
         MovieDetail d = new MovieDetail();
-        d.setId(id); d.setTitle(title); d.setRating(rating);
-        d.setCover(base + poster); d.setYear(year);
+        d.setId(id);
+        d.setTitle(title);
+        d.setRating(rating);
+        d.setCover(MOCK_COVER_BASE + posterFile);
+        d.setYear(year);
         d.setSummary(summary);
         d.setDirectors(Arrays.asList(director.split("/")));
         d.setCast(Arrays.asList(cast.split("/")));
         d.setGenres(Arrays.asList(genres.split("/")));
         d.setRatingCount(150000);
-        d.setDuration(duration); d.setReleaseDate(date);
-        d.setRegions(Arrays.asList("中国大陆")); d.setLanguages(Arrays.asList("普通话"));
+        d.setDuration(duration);
+        d.setReleaseDate(date);
+        d.setRegions(Arrays.asList("中国大陆"));
+        d.setLanguages(Arrays.asList("普通话"));
         return d;
     }
 
@@ -101,7 +110,7 @@ public class DetailActivity extends AppCompatActivity {
         loadDetail();
     }
 
-    /** 加载详情（API → 失败则用本地数据） */
+    /** 加载详情（API → 失败用本地 mock） */
     private void loadDetail() {
         if (movieId == null || movieId.isEmpty()) {
             Toast.makeText(this, "电影ID无效", Toast.LENGTH_SHORT).show();
@@ -116,7 +125,10 @@ public class DetailActivity extends AppCompatActivity {
                         currentDetail = mock;
                         runOnUiThread(() -> bindDetail(mock));
                     } else {
-                        runOnUiThread(() -> { Toast.makeText(this, "加载失败", Toast.LENGTH_SHORT).show(); finish(); });
+                        runOnUiThread(() -> {
+                            Toast.makeText(this, "加载失败", Toast.LENGTH_SHORT).show();
+                            finish();
+                        });
                     }
                 });
     }
@@ -168,17 +180,17 @@ public class DetailActivity extends AppCompatActivity {
         // 导演
         if (d.getDirectors() != null && !d.getDirectors().isEmpty()) {
             tvDirectors.setText("导演: " + String.join("/", d.getDirectors()));
-            tvDirectors.setVisibility(android.view.View.VISIBLE);
+            tvDirectors.setVisibility(View.VISIBLE);
         } else {
-            tvDirectors.setVisibility(android.view.View.GONE);
+            tvDirectors.setVisibility(View.GONE);
         }
 
         // 语言
         if (d.getLanguages() != null && !d.getLanguages().isEmpty()) {
             tvLanguages.setText("语言: " + String.join("、", d.getLanguages()));
-            tvLanguages.setVisibility(android.view.View.VISIBLE);
+            tvLanguages.setVisibility(View.VISIBLE);
         } else {
-            tvLanguages.setVisibility(android.view.View.GONE);
+            tvLanguages.setVisibility(View.GONE);
         }
 
         // 收藏按钮
@@ -195,7 +207,7 @@ public class DetailActivity extends AppCompatActivity {
                 in -> runOnUiThread(() -> btnWatched.setText(in ? "已看过" : "已看")), msg -> {});
     }
 
-    /** 切换收藏状态 */
+    /** 切换收藏状态（已收藏则取消，未收藏则添加） */
     private void toggleCollection(CollectionType type) {
         if (currentDetail == null) return;
         String label = type == CollectionType.WANT_TO_WATCH ? "想看" : "已看";
